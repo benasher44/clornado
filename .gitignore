@@ -1,3 +1,4 @@
 *.pyc
+*.swp
 static
 lib/js/deps.js

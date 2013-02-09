@@ -4,27 +4,32 @@ import os
 import subprocess
 import sys
 
+import config
+
+
 class BuildEngine:
+    """
+    Builds and compiles GSS, Closure js and application js, and mustache
+    templating system.
+    """
 
     def __init__(self, debug=False, clean=False):
         self.debug = debug
         self.clean = clean
-        self.relPath = os.path.abspath(os.path.dirname(__file__)) + '/'
-        self.libPath = self.relPath + 'lib/'
-        self.jarPath = self.libPath + 'jar/'
-        self.srcPath = self.relPath + 'src/'
-        self.staticPath = self.relPath + 'static/'
-
+        relPath = os.path.abspath(os.path.dirname(__file__)) + '/'
+        self.libPath = config.build_paths['lib_path'] + "/" 
+        self.jarPath = config.build_paths['jar_path'] + "/"
+        self.srcPath = config.build_paths['src_path'] + "/"
+        self.staticPath = config.build_paths['static_path'] + "/"
+        self.templatePath = config.build_paths['template_path'] + "/"
 
     def printSectionHeader(self, secName):
         print '-' * len(secName)
         print secName
         print '-' * len(secName)
 
-
     def printMsg(self, msg):
         print '- ' + msg
-
 
     def cleanBuild(self):
         self.printSectionHeader('Cleaning Directory structure')
@@ -45,6 +50,7 @@ class BuildEngine:
         subprocess.check_call(['pip', 'install', '-r', self.relPath + 'requirements.txt'])
 
     def compileGssFiles(self):
+        """ The GSS build step """
         outputDir = self.staticPath + 'css'
 
         if not os.path.exists(outputDir):
@@ -103,6 +109,8 @@ class BuildEngine:
 
         self.printMsg('JavaScript build complete!')
 
+    def compileMustache(self, debug):
+        #TODO: Finish this
 
     def run(self):
         print 'DEBUG: ' + str(self.debug)
@@ -112,8 +120,9 @@ class BuildEngine:
 
         self.installPythonDeps()
 
+        self.compileMustache(self.debug)
         self.compileGssFiles()
-        self.compileClosure(debug)
+        self.compileClosure(self.debug)
         
         print "Done!"
         return 0

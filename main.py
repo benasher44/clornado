@@ -1,8 +1,12 @@
-# Third Party libs
-import tornado.web
 
 # std libs
+import os
 from optparse import OptionParser
+
+# Third Party libs
+from tornado.httpserver import HTTPServer
+import tornado.ioloop
+import tornado.web
 
 # Our libs
 import config
@@ -11,7 +15,7 @@ from basehandler import BaseHandler
 
 class MainHandler(BaseHandler):
     def get(self):
-        context = {'Message': 'Hello World'}
+        context = {'message': 'Hello World'}
         self.render('index.html', context=context)
 
 
@@ -24,14 +28,14 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option('-p', '--production', action='store_true', dest='production', default=False)
     (options, args) = parser.parse_args()
-    build.main(debug=not options.production)
+    #build.main(debug=not options.production)
     settings = config.tornado_settings
     application = tornado.web.Application(get_handlers(), **settings)
-    application.debug = config.debug
+    application.debug = not options.production
     server = HTTPServer(application)
     server.listen(
-        int(os.environ.get(config.get('application_port'), 8080)),
-        address=os.environ.get(config.get('application_ip'), "127.0.0.1")
+        int(config.application_port),
+        address=config.application_ip,
     )
-    server.start(0)
-    IOLoop.instance().start()
+    server.start(1 if not options.production else 0)
+    tornado.ioloop.IOLoop.instance().start()

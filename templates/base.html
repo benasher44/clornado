@@ -1,0 +1,12 @@
+<html>
+    <head>
+        {% block head %}{% end %}
+        <title>{% block title %}Clornado{% end %}</title>
+    </head>
+    <body>
+	{% block body %}{% end %}
+    </body>
+    {% raw closure_includes() %}
+    {% block scripts %}{% end %}
+
+</html>
