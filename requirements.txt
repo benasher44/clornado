@@ -1,0 +1,4 @@
+py-bcrypt==0.2
+simplejson==2.4.0
+tornado==2.2
+pystache==0.5.3
