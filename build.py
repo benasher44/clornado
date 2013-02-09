@@ -9,11 +9,11 @@ class BuildEngine:
     def __init__(self, debug=False, clean=False):
         self.debug = debug
         self.clean = clean
-        relPath = os.path.abspath(os.path.dirname(__file__)) + '/'
-        self.libPath = relPath + 'lib/'
+        self.relPath = os.path.abspath(os.path.dirname(__file__)) + '/'
+        self.libPath = self.relPath + 'lib/'
         self.jarPath = self.libPath + 'jar/'
-        self.srcPath = relPath + 'src/'
-        self.staticPath = relPath + 'static/'
+        self.srcPath = self.relPath + 'src/'
+        self.staticPath = self.relPath + 'static/'
 
 
     def printSectionHeader(self, secName):
@@ -40,6 +40,9 @@ class BuildEngine:
         
         self.printMsg('Clean complete!')
 
+    def installPythonDeps(self):
+        self.printSectionHeader('Installing Python Dependencies')
+        subprocess.check_call(['pip', 'install', '-r', self.relPath + 'requirements.txt'])
 
     def compileGssFiles(self):
         outputDir = self.staticPath + 'css'
@@ -106,6 +109,8 @@ class BuildEngine:
 
         if self.clean:
             self.cleanBuild()
+
+        self.installPythonDeps()
 
         self.compileGssFiles()
         self.compileClosure(debug)
