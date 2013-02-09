@@ -1,0 +1,3 @@
+[submodule "lib"]
+	path = lib
+	url = git@github.com:benasher44/clornado-libs.git
