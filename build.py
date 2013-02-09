@@ -1,9 +1,6 @@
-import fnmatch
 from optparse import OptionParser
 import shutil
-import glob
 import os
-import string
 import subprocess
 import sys
 
@@ -68,6 +65,10 @@ class BuildEngine:
         self.printMsg('Style build complete!')
 
     def compileClosure(self, debug):
+
+        if not os.path.exists(self.staticPath):
+            os.mkdir(self.staticPath)
+
         if debug:
             os.symlink(os.path.abspath(self.srcPath + 'js'), self.staticPath + 'js')
             os.symlink(os.path.abspath(self.libPath + 'js'), self.staticPath + 'lib')
