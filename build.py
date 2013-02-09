@@ -49,7 +49,7 @@ class BuildEngine:
 
         gss_cmd = ['java',
                 '-jar', self.jarPath + 'closure-stylesheets.jar', self.srcPath + 'gss/*.gss',
-                '--output-file', self.staticPath + '../static/css/app.css',
+                '--output-file', self.staticPath + 'css/app.css',
                 '--rename']
 
         if self.debug:
