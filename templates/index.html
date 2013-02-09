@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+<!-- tornado template, read the tornado.template docs for more info -->
+
+{% block head %}
+	<link rel='stylesheet' type='text/css' href="{{static_url('css/main.css')}}" />
+{% end %}
+
+{% block body %}
+    <div>
+        {% raw mustache_template('home', context) %} 
+    </div>
+{% end %}
+
+{% block scripts %}
+    <!-- Add your third party scrips here -->
+{% end %}
