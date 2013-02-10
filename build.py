@@ -81,6 +81,9 @@ class BuildEngine:
         self.printMsg('Deleting compiled style sheets...')
         shutil.rmtree(self.staticPath + 'css', ignore_errors=True)
         
+        self.printMsg('Deleting compiled Scss assets...')
+        shutil.rmtree(self.staticPath + 'sassets', ignore_errors=True)
+        
         self.printMsg('Clean complete!')
 
     def installPythonDeps(self):
