@@ -37,8 +37,10 @@ class BuildEngine:
         self.printMsg('Deleting compiled js files...')
         if os.path.islink(self.staticPath + 'js'):
             os.unlink(self.staticPath + 'js')
+            os.unlink(self.staticPath + 'lib')
         else:
             shutil.rmtree(self.staticPath + 'js', ignore_errors=True)
+            shutil.rmtree(self.staticPath + 'lib', ignore_errors=True)
 
         self.printMsg('Deleting compiled style sheets...')
         shutil.rmtree(self.staticPath + 'css', ignore_errors=True)
@@ -73,12 +75,12 @@ class BuildEngine:
 
         self.printMsg('Style build complete!')
 
-    def compileClosure(self, debug):
+    def compileClosure(self):
 
         if not os.path.exists(self.staticPath):
             os.mkdir(self.staticPath)
 
-        if debug:
+        if self.debug:
             os.symlink(os.path.abspath(self.srcPath + 'js'), self.staticPath + 'js')
             os.symlink(os.path.abspath(self.libPath + 'js'), self.staticPath + 'lib')
         else:
@@ -86,10 +88,8 @@ class BuildEngine:
             if not os.path.exists(outputDir):
                 os.makedirs(outputDir)
         
-        self.compileSoy()
-        
         self.printSectionHeader('Compiling JS Files')
-        if debug:
+        if self.debug:
             cmd = 'cd ' + self.staticPath + 'lib && python closure-library/closure/bin/build/depswriter.py --root_with_prefix="app ../../../../js" > deps.js'
             self.printMsg(cmd)
             subprocess.check_call(cmd, shell=True)
@@ -109,7 +109,7 @@ class BuildEngine:
 
         self.printMsg('JavaScript build complete!')
 
-    def compileMustache(self, debug):
+    def compileMustache(self):
         #TODO: Finish this
         pass
 
@@ -121,19 +121,18 @@ class BuildEngine:
 
         self.installPythonDeps()
 
-        self.compileMustache(self.debug)
-        self.compileGssFiles()
-        self.compileClosure(self.debug)
+        self.compileMustache()
+        self.compileClosure()
         
         print "Done!"
         return 0
 
-def main(debug=False, clean=False):
-    return BuildEngine(debug, False).run()
+def main(debug=True, clean=True):
+    return BuildEngine(debug, clean).run()
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-d', '--debug', action='store_true', dest='debug', default=False)
-    parser.add_option('-c', '--clean', action='store_true', dest='clean', default=False)
+    parser.add_option('-d', '--debug', action='store_true', dest='debug', default=True)
+    parser.add_option('-c', '--clean', action='store_true', dest='clean', default=True)
     (options, args) = parser.parse_args()
     BuildEngine(options.debug, options.clean).run()
