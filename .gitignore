@@ -1,5 +1,5 @@
 *.pyc
 *.swp
 static
-lib/js/deps.js
+src/js/deps.js
 src/js/compiled.js
