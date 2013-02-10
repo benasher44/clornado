@@ -145,9 +145,7 @@ class BuildEngine:
         
         self.printSectionHeader('Compiling JS Files')
         if self.debug:
-            cmd = 'cd ' + self.staticPath + 'lib && python closure-library/closure/bin/build/depswriter.py --root="../js" > ../deps.js'
-            self.printMsg(cmd)
-            subprocess.check_call(cmd, shell=True)
+            subprocess.check_call(['python', 'closure-library/closure/bin/build/depswriter.py', '--root=../../static/js', '--output_file=../../static/js/deps.js'], cwd=self.libPath + 'js')
         else:
             jsPath = os.path.abspath(self.srcPath + 'js')
             libPath = os.path.abspath(self.libPath + 'js')
