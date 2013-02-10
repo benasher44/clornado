@@ -4,6 +4,7 @@ import template_methods
 #import uimodules
 
 base_path = os.path.abspath(os.path.dirname(__file__))
+app_name = 'helloworld'
 
 tornado_settings = {
     'cookie_secret': 'clornado', #TODO: Solve the issue of unique cookies and security

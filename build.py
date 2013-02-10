@@ -1,11 +1,12 @@
+import config
 from optparse import OptionParser
 import shutil
 import os
 import subprocess
 import sys
 
-import config
-
+JAVASCRIPT_BASE_TEMPLATE = """goog.provide('%s');
+"""
 
 class BuildEngine:
     """
@@ -13,25 +14,46 @@ class BuildEngine:
     templating system.
     """
 
-    def __init__(self, debug=False, clean=False):
+    def __init__(self, debug=True):
+        self.appName = config.app_name.lower()
         self.debug = debug
-        self.clean = clean
-        self.proj_root = config.base_path + '/'
         self.libPath = config.build_paths['lib_path'] + "/" 
         self.jarPath = config.build_paths['jar_path'] + "/"
+        self.projRoot = config.base_path + '/'
         self.srcPath = config.build_paths['src_path'] + "/"
         self.staticPath = config.build_paths['static_path'] + "/"
         self.templatePath = config.build_paths['template_path'] + "/"
 
     def printSectionHeader(self, secName):
-        print '-' * len(secName)
+        numDashes = max([len(line) for line in secName.split('\n')])
+
+        print '-' * numDashes
         print secName
-        print '-' * len(secName)
+        print '-' * numDashes
 
     def printMsg(self, msg):
         print '- ' + msg
+    
+    def checkAppRoots(self):
+        #TODO: check scss and template roots
+
+        # check js roots
+        jsAppRoot = self.srcPath + 'js/' + self.appName
+        if not os.path.exists(jsAppRoot):
+            os.makedirs(jsAppRoot)
+
+        initFilePath = jsAppRoot + '/init.js'
+        if not os.path.exists(initFilePath):
+            with open(initFilePath, 'w') as initFile:
+                initFile.write(JAVASCRIPT_BASE_TEMPLATE % self.appName)
 
     def cleanBuild(self):
+        # intelligently clean
+        # whether or not the static/js directory is symlink and the debug flag should match
+        needsClean = os.path.islink(self.staticPath + 'js') == self.debug
+        if not needsClean:
+            return
+        
         self.printSectionHeader('Cleaning Directory structure')
 
         self.printMsg('Deleting compiled js files...')
@@ -49,7 +71,7 @@ class BuildEngine:
 
     def installPythonDeps(self):
         self.printSectionHeader('Installing Python Dependencies')
-        subprocess.check_call(['pip', 'install', '-r', self.proj_root + 'requirements.txt'])
+        subprocess.check_call(['pip', 'install', '-r', self.projRoot + 'requirements.txt'])
 
     def compileGssFiles(self):
         """ The GSS build step """
@@ -98,11 +120,11 @@ class BuildEngine:
             libPath = os.path.abspath(self.libPath + 'js')
             cmd = ['python', libPath + '/closure-library/closure/bin/build/closurebuilder.py',
                     '--root=' + libPath,
-                    '--root=' + jsPath, 
+                    '--root=' + '/'.join([jsPath, self.appName]), 
                     '--compiler_jar=' + self.jarPath + 'closure-compiler.jar', 
                     '--output_mode=compiled',
-                    '--namespace=LoanLit',
-                    '--output_file=' + self.staticPath + 'js/app.js'
+                    '--namespace=' + self.appName,
+                    '--output_file=' + self.staticPath + 'js/compiled.js'
                     ]
             self.printMsg(' '.join(cmd))
             subprocess.check_call(cmd)
@@ -116,8 +138,8 @@ class BuildEngine:
     def run(self):
         print 'DEBUG: ' + str(self.debug)
 
-        if self.clean:
-            self.cleanBuild()
+        self.cleanBuild()
+        self.checkAppRoots()
 
         self.installPythonDeps()
 
@@ -127,12 +149,12 @@ class BuildEngine:
         print "Done!"
         return 0
 
-def main(debug=True, clean=True):
-    return BuildEngine(debug, clean).run()
+def main(debug=True):
+    return BuildEngine(debug).run()
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-d', '--debug', action='store_true', dest='debug', default=True)
-    parser.add_option('-c', '--clean', action='store_true', dest='clean', default=True)
+    parser.add_option('-p', '--prod', action='store_true', dest='prod', default=False)
     (options, args) = parser.parse_args()
-    BuildEngine(options.debug, options.clean).run()
+    debug = not options.prod
+    BuildEngine(debug).run()
