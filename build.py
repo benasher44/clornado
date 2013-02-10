@@ -1,7 +1,10 @@
+from collections import OrderedDict
 import config
+import fnmatch
 from optparse import OptionParser
-import shutil
 import os
+import shutil
+import scss
 import subprocess
 import sys
 
@@ -33,9 +36,16 @@ class BuildEngine:
 
     def printMsg(self, msg):
         print '- ' + msg
+
+    def ifind(self, match, inFolder):
+        matches = []
+        for root, dirnames, filenames in os.walk(inFolder):
+            for filename in fnmatch.filter(filenames, match):
+                yield os.path.join(root, filename)
+
     
     def checkAppRoots(self):
-        #TODO: check scss and template roots
+        #TODO: check template roots
 
         # check js roots
         jsAppRoot = self.srcPath + 'js/' + self.appName
@@ -46,6 +56,10 @@ class BuildEngine:
         if not os.path.exists(initFilePath):
             with open(initFilePath, 'w') as initFile:
                 initFile.write(JAVASCRIPT_BASE_TEMPLATE % self.appName)
+
+        scssSrcRoot = self.srcPath + 'scss'
+        if not os.path.exists(scssSrcRoot):
+            os.makedirs(scssSrcRoot)
 
     def cleanBuild(self):
         # intelligently clean
@@ -73,27 +87,43 @@ class BuildEngine:
         self.printSectionHeader('Installing Python Dependencies')
         subprocess.check_call(['pip', 'install', '-r', self.projRoot + 'requirements.txt'])
 
-    def compileGssFiles(self):
-        """ The GSS build step """
+    def compileScss(self):
+        self.printSectionHeader('Compiling Scss Files')
+        
+        # scss settings
+        scss.STATIC_ROOT = self.staticPath
+        scss.STATIC_URL = '/static/'
+        scss.ASSETS_ROOT = scss.STATIC_ROOT + 'sassets/'
+        scss.ASSETS_URL = scss.STATIC_URL + 'sassets/'
+        
+        # make sure the directories we need are there
         outputDir = self.staticPath + 'css'
-
         if not os.path.exists(outputDir):
             os.makedirs(outputDir)
+        
+        if not os.path.exists(scss.ASSETS_ROOT):
+            os.makedirs(scss.ASSETS_ROOT)
 
-        gss_cmd = ['java',
-                '-jar', self.jarPath + 'closure-stylesheets.jar', self.srcPath + 'gss/*.gss',
-                '--output-file', self.staticPath + 'css/app.css',
-                '--rename']
+        # find some files to compile
+        scssFiles = OrderedDict()
+        for filepath in self.ifind('*.scss', self.srcPath + 'scss'):
+            with open(filepath, 'r') as scssFile:
+                self.printMsg(filepath)
+                scssFiles[filepath] = scssFile.read()
 
-        if self.debug:
-            gss_cmd.extend(['NONE', '--pretty-print'])
-        else:
-            gss_cmd.append('NONE')
+        # compile
+        if len(scssFiles) > 0:
+            _scss = scss.Scss(
+                    scss_opts={
+                        'compress': not self.debug,
+                        'debug_info': self.debug,
+                        }
+                    )
 
-        self.printSectionHeader('Compiling GSS Files')
-        commandToRun = ' '.join(gss_cmd)
-        self.printMsg(commandToRun)
-        subprocess.check_call(commandToRun, shell=True)
+            _scss._scss_files = scssFiles
+            scssOutput = _scss.compile()
+            with open(self.staticPath + 'css/app.css', 'w') as cssFile:
+                cssFile.write(scssOutput)
 
         self.printMsg('Style build complete!')
 
@@ -143,6 +173,7 @@ class BuildEngine:
 
         self.installPythonDeps()
 
+        self.compileScss()
         self.compileMustache()
         self.compileClosure()
         
