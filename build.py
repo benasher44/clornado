@@ -16,7 +16,7 @@ class BuildEngine:
     def __init__(self, debug=False, clean=False):
         self.debug = debug
         self.clean = clean
-        relPath = os.path.abspath(os.path.dirname(__file__)) + '/'
+        self.proj_root = config.base_path + '/'
         self.libPath = config.build_paths['lib_path'] + "/" 
         self.jarPath = config.build_paths['jar_path'] + "/"
         self.srcPath = config.build_paths['src_path'] + "/"
@@ -47,7 +47,7 @@ class BuildEngine:
 
     def installPythonDeps(self):
         self.printSectionHeader('Installing Python Dependencies')
-        subprocess.check_call(['pip', 'install', '-r', self.relPath + 'requirements.txt'])
+        subprocess.check_call(['pip', 'install', '-r', self.proj_root + 'requirements.txt'])
 
     def compileGssFiles(self):
         """ The GSS build step """
@@ -111,6 +111,7 @@ class BuildEngine:
 
     def compileMustache(self, debug):
         #TODO: Finish this
+        pass
 
     def run(self):
         print 'DEBUG: ' + str(self.debug)
