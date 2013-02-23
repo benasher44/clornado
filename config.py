@@ -1,4 +1,6 @@
+import base64
 import os.path
+import uuid
 
 import template_methods
 #import uimodules
@@ -6,8 +8,14 @@ import template_methods
 base_path = os.path.abspath(os.path.dirname(__file__))
 app_name = 'helloworld'
 
+if not os.path.exists(os.path.join(base_path, 'secret.py')):
+    with open('secret.py', 'w') as secret_file:
+        secret_file.write('secret = "%s"\n' % base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes))
+
+import secret
+
 tornado_settings = {
-    'cookie_secret': 'clornado', #TODO: Solve the issue of unique cookies and security
+    'cookie_secret': secret.secret,
     'gzip': True,
     'login_url': '/login', #TODO: Investigate static_handler_class
     'static_path': os.path.join(base_path, 'static'),
