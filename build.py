@@ -186,7 +186,7 @@ def main(debug=True):
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-p', '--prod', action='store_true', dest='prod', default=False)
+    parser.add_option('-p', '--production', action='store_true', dest='prod', default=False)
     (options, args) = parser.parse_args()
     debug = not options.prod
     BuildEngine(debug).run()
