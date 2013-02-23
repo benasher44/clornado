@@ -1,5 +1,6 @@
 *.pyc
 *.swp
+secret.py
 static
 src/js/deps.js
 src/js/compiled.js
